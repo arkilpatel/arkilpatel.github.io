@@ -7,7 +7,7 @@ baseurl: "" # the subpath of your site, e.g. /blog
 
 # User settings
 username: Arkil Patel
-user_description: I'm a Computer Science Senior at BITS-Pilani, Goa. My research interests lie broadly in Machine Learning with a focus on Natural Language Processing. My work consists of both theory and empirics in equal measure. I spent six wonderful months at Microsoft Research, where I was fortunate to be advised by Dr. Navin Goyal. I plan to join the University of Waterloo this fall as a graduate student. <br><br> In my spare time, I like to read books - both fiction and non-fiction. I am a big Movie and TV buff. I also love to listen to music and I have made a hobby of collecting beautiful soundtracks. I also play football, Table-Tennis and Badminton in decreasing order of pleasure and skill.
+user_description: I'm a Computer Science Senior at BITS-Pilani, Goa. My research interests lie broadly in Machine Learning with a focus on Natural Language Processing. My work consists of both theory and empirics in equal measure. I spent six wonderful months at Microsoft Research, where I was fortunate to be advised by Dr. Navin Goyal. <br><br> In my spare time, I like to read books - both fiction and non-fiction. I am a big Movie and TV buff. I also love to listen to music and I have made a hobby of collecting beautiful soundtracks. I also play football, Table-Tennis and Badminton in decreasing order of pleasure and skill.
 user_title:
 email: arkil.patel@gmail.com
 # twitter_username: lorem_ipsum
