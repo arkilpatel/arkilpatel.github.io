@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="title" content="Blog — Arkil Patel">
+    <meta name="description" content="Writing by Arkil Patel on language models, evaluation, and forecasting.">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f0e6">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#19160f">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/nicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/nicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/nicons/favicon-16x16.png">
+
+    <script src="https://kit.fontawesome.com/cf1c3caa39.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../css/academicons.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <title>Blog — Arkil Patel</title>
+    <script>
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    </script>
+  </head>
+
+  <body>
+    <div class="layout">
+      <!-- ======================= SIDEBAR ======================= -->
+      <aside class="sidebar">
+        <div class="sidebar-inner">
+          <h1 class="name"><a href="../index.html"><b>Arkil</b> Patel</a></h1>
+          <img class="avatar" src="../images/profile-3k.jpg" alt="Arkil Patel" loading="lazy">
+          <p class="role">PhD Student in Computer Science<br>Mila &amp; McGill University</p>
+
+          <nav class="nav">
+            <a target="_blank" rel="noopener" href="../assets/Arkil_CV.pdf"><i class="fas fa-file-alt"></i> CV</a>
+            <a href="mailto:arkil.patel@gmail.com"><i class="fas fa-envelope"></i> Email</a>
+            <a target="_blank" rel="noopener" href="https://scholar.google.com/citations?user=-5goVAsAAAAJ&hl=en"><i class="ai ai-google-scholar"></i> Scholar</a>
+            <a target="_blank" rel="noopener" href="https://github.com/arkilpatel"><i class="fab fa-github"></i> GitHub</a>
+            <a target="_blank" rel="noopener" href="http://www.linkedin.com/in/arkil-patel"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+            <a target="_blank" rel="noopener" href="https://twitter.com/arkil_patel"><i class="fab fa-twitter"></i> Twitter</a>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- ======================= CONTENT ======================= -->
+      <main class="content">
+        <nav class="topnav">
+          <a href="../index.html">About</a>
+          <a href="../publications.html">Publications</a>
+          <a href="index.html" class="active">Blog</a>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
+        </nav>
+
+        <div class="page">
+          <section class="section">
+            <h2 class="section-title">Blog</h2>
+
+            <a class="post-card" href="forecasting-llm-rankings.html">
+              <div class="post-card-meta">Jun 8, 2026 &middot; 5 min read</div>
+              <h3 class="post-card-title">Forecasting How Good a Language Model Will Be &mdash; Before You Evaluate It</h3>
+              <p class="post-card-desc">Cross-entropy loss is smooth but task-agnostic; direct evaluation is expensive and often uninformative early in training. We propose a different signal &mdash; cheap proxy metrics calculated from a model's distribution over expert solutions. We use this to rank models, choose pretraining data, and forecast accuracy across training.</p>
+            </a>
+          </section>
+        </div><!-- /.page -->
+      </main>
+    </div>
+
+    <script src="../js/site.js"></script>
+  </body>
+</html>

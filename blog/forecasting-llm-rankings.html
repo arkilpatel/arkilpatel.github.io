@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="title" content="Forecasting How Good a Language Model Will Be — Before You Evaluate It">
+    <meta name="description" content="A 5-minute read on forecasting LLM downstream performance with cheap proxy metrics computed from a model's predictions over expert solutions.">
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Forecasting How Good a Language Model Will Be — Before You Evaluate It">
+    <meta property="og:description" content="Cheap proxy metrics, read off a model's predictions over expert solutions, can rank models, choose pretraining data, and forecast accuracy across training.">
+    <meta property="og:image" content="https://arkilpatel.github.io/images/blog/forecasting/method.png">
+
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f0e6">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#19160f">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/nicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/nicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/nicons/favicon-16x16.png">
+
+    <script src="https://kit.fontawesome.com/cf1c3caa39.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <title>Forecasting How Good a Language Model Will Be — Before You Evaluate It</title>
+    <script>
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    </script>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <a class="home-link" href="../index.html">Arkil Patel</a>
+      <nav>
+        <a href="../index.html">About</a>
+        <a href="../publications.html">Publications</a>
+        <a href="index.html">Blog</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+        </button>
+      </nav>
+    </header>
+
+    <article class="article">
+      <p class="post-eyebrow">Research Note</p>
+      <h1 class="post-title">Forecasting How Good a Language Model Will Be &mdash; Before You Evaluate It</h1>
+      <p class="post-meta">Jun 8, 2026 &middot; 5 min read</p>
+
+      <div class="post-paper">
+        <span class="label">Based on our paper</span>
+        Forecasting Downstream Performance of LLMs With Proxy Metrics<br>Arkil Patel, Siva Reddy, Marius Mosbach, Dzmitry Bahdanau
+      </div>
+
+      <div class="post-body">
+        <p>
+          Building a language model is really a long series of <strong>comparative</strong> decisions. Which pretraining corpus is better? Does this new post-training recipe actually help on the target domain? Is this architecture worth the switch? Answering any of these well requires a <em>forecast</em> of the downstream performance for the tasks we care about. However, the two signals we commonly use for this are flawed:
+        </p>
+        <p>
+          <strong>Cross-entropy loss</strong> is wonderfully smooth: it scales predictably with compute and extrapolates with remarkable fidelity. But it is only weakly tied to the capabilities we care about. For instance, two models with nearly identical loss may behave very differently on a downstream task.<span class="cite"><a id="cite-1-ref" href="#ref-1">1</a></span>
+        </p>
+        <p>
+          <strong>Direct downstream evaluation</strong> is expensive, sparse, and often uninformative (e.g., at the start of training). Frontier evaluations may require human experts, code execution, or an external environment that may be inaccessible. Prior works on downstream performance estimation have often relied on benchmark performances to fit scaling laws.<span class="cite"><a id="cite-2-ref" href="#ref-2">2</a>, <a id="cite-3-ref" href="#ref-3">3</a></span>
+        </p>
+        <p>
+          In this work, we ask: is there a different signal? &mdash; one that is as <em>smooth</em> as loss, but as <em>task-conditioned</em> as evaluation?
+        </p>
+
+        <h2>The Idea</h2>
+        <p>
+          For the target task of interest, we assume access to <strong>expert solutions</strong>, i.e., worked-out reasoning traces, written by a human or a strong model. We believe it will always be easier to get access to a handful of expert reasoning trajectories as opposed to the full downstream environment. Our hypothesis is that by observing a model's distribution over such expert solutions, we can infer its <em>relative</em> capability on the task. For instance, a model that cannot yet solve a hard math problem on its own may still assign high probability to some of the crucial steps once it sees them in context.
+        </p>
+        <p>
+          We pass an expert trajectory through a candidate model in a <strong>single forward pass</strong> (no generation, so it is extremely cheap) and compute <strong>token-level statistics</strong> of its next-token distribution: for e.g., the entropy at each step, whether the expert's token is in the model's top-<em>k</em>, the rank of the expert token, and so on. These are then aggregated with weights that emphasize important positions: for e.g., low-frequency tokens, or places where the model is most uncertain. The result is a <strong>proxy metric</strong>: a single number that is cheap to compute and tightly conditioned on the task.
+        </p>
+        <p>
+          Crucially, the expert only needs to provide <em>text</em>. We never need its log-probabilities and never touch the downstream evaluator, so the same recipe works with human-written solutions or with traces from closed-weight frontier models.
+        </p>
+
+        <figure class="post-figure">
+          <img src="../images/blog/forecasting/method.svg" alt="Schematic of the proxy metric method: an expert trajectory is read by the candidate model; at each expert token we record a core metric (e.g., the rank of the expert token) and a weighting term (e.g., entropy), and their scaled dot product yields the proxy metric.">
+          <figcaption>At each token of the expert's solution, we read off a <em>core metric</em> (e.g., the rank of the expert token under the model's distribution) and a <em>weighting</em> term (e.g., entropy). Their weighted combination is the proxy metric.</figcaption>
+        </figure>
+
+        <h2>Result 1 — Ranking models without running the benchmark</h2>
+        <p>
+          First, the practical question of model selection: given a pool of heterogeneous models, can we rank them on a downstream task <em>without</em> evaluating them on it? We fit a simple linear ranker over the proxy features on a set of held-in tasks and test it on held-out reasoning benchmarks. It recovers the true ranking with mean Spearman <strong>&rho; = 0.81</strong>, compared with just <strong>0.36</strong> for cross-entropy loss.
+        </p>
+
+        <figure class="post-figure md">
+          <img src="../images/blog/forecasting/ranking.png" alt="Six scatter plots (GPQA, MMLU-Pro, USACO, SuperGPQA, AIME, HMMT) showing benchmark score against the proxy metric, with tight monotonic relationships; mean cross-validated Spearman rho is 0.81.">
+          <figcaption>On held-out reasoning benchmarks, the proxy metric tracks true benchmark score closely across very different tasks (mean cross-validated Spearman &rho; = 0.81).</figcaption>
+        </figure>
+
+        <h2>Result 2 — Choosing pretraining data with ~10,000× less compute</h2>
+        <p>
+          Next, a decision made <em>before</em> committing real compute: which pretraining corpus should you use? On the <a href="https://arxiv.org/abs/2504.11393" target="_blank" rel="noopener">DataDecide</a> testbed, the goal is to rank 25 candidate corpora the way a 1B target model would rank them by downstream accuracy. We train tiny proxy models (4M&ndash;90M parameters) and score them with our proxies. This recovers the corpus ranking about as well as direct downstream evaluation while using order of <strong>10,000&times; less compute</strong>, pushing the cost&ndash;accuracy frontier beyond prior methods.
+        </p>
+
+        <figure class="post-figure md">
+          <img src="../images/blog/forecasting/decision_accuracy.png" alt="Decision accuracy versus proportion of target compute. The frequency-weighted top-5 accuracy proxy reaches decision accuracy above 0.85 at roughly 1e-5 of target compute, far to the left of the downstream-performance baseline.">
+          <figcaption>Decision accuracy (fraction of corpus pairs ranked correctly) vs. compute. Our proxy reaches the quality of direct downstream evaluation while sitting orders of magnitude further left on the compute axis.</figcaption>
+        </figure>
+
+        <h2>Result 3 — Forecasting accuracy across training</h2>
+        <p>
+          Finally, forecasting <em>through training</em>. We show that we can find good proxy metrics that follow clean power laws along both pretraining and post-training trajectories. Additionally, when a handful of early benchmark scores <em>are</em> available, fitting downstream accuracy as a function of the proxy (rather than of loss or raw compute) extrapolates across an <strong>18&times; compute horizon with roughly half the error</strong> of those alternatives.
+        </p>
+
+        <figure class="post-figure md">
+          <img src="../images/blog/forecasting/hellaswag.png" alt="Extrapolating HellaSwag accuracy along the OLMo-3-7B pretraining trajectory. The proxy power-law fit (RMSE = 0.003) tracks the target far more closely than the CE loss exponential (RMSE = 0.09)">
+          <figcaption>Extrapolating HellaSwag accuracy along the OLMo-3-7B pretraining trajectory. The proxy power-law fit (RMSE = 0.003) tracks the target far more closely than the CE loss exponential (RMSE = 0.09)</figcaption>
+        </figure>
+
+        <h2>Why this matters</h2>
+        <p>
+          The thread running through all three settings is the same: generic CE loss is smooth but task-agnostic; direct evaluation is task-specific but expensive and often uninformative early on. Proxy metrics computed over expert trajectories can give us <em>both</em> smoothness and task-conditioning in a single, cheap forward pass. I believe that expert solutions are an underused source of evaluation signal. Studying how a model's predictions differs from an expert's reasoning, step by step, tells us a surprising amount about what that model is capable of.
+        </p>
+
+        <section class="references">
+          <h2>References</h2>
+          <ol class="ref-list">
+            <li id="ref-1">
+              Liu et al. <span class="ref-title">Same Pre-training Loss, Better Downstream: Implicit Bias Matters for Language Models</span>. ICML 2023.
+              <a href="https://arxiv.org/abs/2210.14199" target="_blank" rel="noopener">link</a>
+              <a class="ref-back" href="#cite-1-ref" aria-label="Back to text" title="Back to text">&#8617;</a>
+            </li>
+            <li id="ref-2">
+              Ruan et al. <span class="ref-title">Observational Scaling Laws and the Predictability of Language Model Performance</span>. NeurIPS 2024.
+              <a href="https://arxiv.org/abs/2405.10938" target="_blank" rel="noopener">link</a>
+              <a class="ref-back" href="#cite-2-ref" aria-label="Back to text" title="Back to text">&#8617;</a>
+            </li>
+            <li id="ref-3">
+              Owen. <span class="ref-title">How Predictable Is Language Model Benchmark Performance?</span>. arXiv 2024.
+              <a href="https://arxiv.org/abs/2401.04757" target="_blank" rel="noopener">link</a>
+              <a class="ref-back" href="#cite-3-ref" aria-label="Back to text" title="Back to text">&#8617;</a>
+            </li>
+          </ol>
+        </section>
+
+        <div class="post-end">
+          Questions or thoughts? Feel free to <a href="mailto:arkil.patel@gmail.com">reach out</a> &mdash; or head back to the <a href="../index.html">homepage</a>.
+        </div>
+      </div>
+    </article>
+
+    <script src="../js/site.js"></script>
+  </body>
+</html>
